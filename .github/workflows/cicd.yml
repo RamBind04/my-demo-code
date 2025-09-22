@@ -28,15 +28,19 @@ jobs:
     
     - name: Trivy installation (Ubuntu 24.04 fix)
       run: |
+        # Install dependencies
         sudo apt-get update -y
         sudo apt-get install -y wget gnupg lsb-release
 
-        # Fetch and add the Trivy GPG key to apt keyring
-        wget -qO- https://aquasecurity.github.io/trivy-repo/deb/public.key | \
-          sudo gpg --dearmor -o /etc/apt/keyrings/trivy-archive-keyring.gpg
+        # Create keyrings directory if it doesn't exist
+        sudo mkdir -p /etc/apt/keyrings
 
-        # Add Trivy repository to sources.list.d
-        echo "deb [signed-by=/etc/apt/keyrings/trivy-archive-keyring.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
+        # Fetch and add Trivy GPG key to the keyring
+        wget -qO- https://aquasecurity.github.io/trivy-repo/deb/public.key | \
+          sudo gpg --dearmor -o /etc/apt/keyrings/trivy.gpg
+
+        # Add Trivy repository with signed-by option
+        echo "deb [signed-by=/etc/apt/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
           sudo tee /etc/apt/sources.list.d/trivy.list
 
         # Update apt and install Trivy
@@ -47,7 +51,12 @@ jobs:
       run: trivy fs --format json -o fs-report.json .
 
     - name: Gitleaks installation
-      run: sudo apt-get install -y gitleaks
+      run: |
+        # Install Gitleaks from GitHub release (since apt package may not be available)
+        wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz
+        tar -xzf gitleaks_8.18.4_linux_x64.tar.gz
+        sudo mv gitleaks /usr/local/bin/
+        gitleaks --version
 
     - name: Gitleaks code scan
       run: gitleaks detect --source . --report-path=gitleaks-report.json --report-format=json
