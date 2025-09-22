@@ -3,7 +3,7 @@ name: cicd pipeline
 on:
   push:
     branches: [ "master" ]
-  
+
 jobs:
   compile:
     runs-on: self-hosted
@@ -31,14 +31,15 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y wget gnupg lsb-release
 
-        # Fetch and store the GPG key in proper binary format
+        # Fetch and add the Trivy GPG key to apt keyring
         wget -qO- https://aquasecurity.github.io/trivy-repo/deb/public.key | \
-          sudo gpg --dearmor -o /usr/share/keyrings/trivy-archive-keyring.gpg
+          sudo gpg --dearmor -o /etc/apt/keyrings/trivy-archive-keyring.gpg
 
-        # Add Trivy repo with signed-by reference
-        echo "deb [signed-by=/usr/share/keyrings/trivy-archive-keyring.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
+        # Add Trivy repository to sources.list.d
+        echo "deb [signed-by=/etc/apt/keyrings/trivy-archive-keyring.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
           sudo tee /etc/apt/sources.list.d/trivy.list
 
+        # Update apt and install Trivy
         sudo apt-get update -y
         sudo apt-get install -y trivy
 
