@@ -31,12 +31,12 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y wget gnupg lsb-release
 
-        # Download and save Trivy GPG key in correct format
+        # Fetch and store the GPG key in proper binary format
         wget -qO- https://aquasecurity.github.io/trivy-repo/deb/public.key | \
-          sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
+          sudo gpg --dearmor -o /usr/share/keyrings/trivy-archive-keyring.gpg
 
-        # Add Trivy repo with signed-by
-        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
+        # Add Trivy repo with signed-by reference
+        echo "deb [signed-by=/usr/share/keyrings/trivy-archive-keyring.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | \
           sudo tee /etc/apt/sources.list.d/trivy.list
 
         sudo apt-get update -y
