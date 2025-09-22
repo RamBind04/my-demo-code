@@ -26,6 +26,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Clean up existing Trivy key and repository
+      run: |
+        # Remove any existing Trivy key files to avoid conflicts
+        sudo rm -f /etc/apt/trusted.gpg.d/trivy.gpg
+        sudo rm -f /etc/apt/keyrings/trivy.gpg
+        sudo rm -f /etc/apt/sources.list.d/trivy.list
+
     - name: Trivy installation (Ubuntu 24.04 fix)
       run: |
         # Install dependencies
@@ -47,12 +54,15 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y trivy
 
+    - name: Verify Trivy installation
+      run: trivy --version
+
     - name: Trivy FS scan
       run: trivy fs --format json -o fs-report.json .
 
     - name: Gitleaks installation
       run: |
-        # Install Gitleaks from GitHub release (since apt package may not be available)
+        # Install Gitleaks from GitHub release
         wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz
         tar -xzf gitleaks_8.18.4_linux_x64.tar.gz
         sudo mv gitleaks /usr/local/bin/
